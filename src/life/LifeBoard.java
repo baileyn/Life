@@ -16,17 +16,26 @@
  */
 package life;
 
+import java.util.ArrayList;
+import java.util.List;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
+import life.util.ListUtils;
 
 /**
  *
  * @author Nicholas Bailey
  */
 public class LifeBoard extends Pane {
+    private static final int DEFAULT_ANIMATION_DELAY = 200;
+    
     private final int width;
     private final int height;
         
     private final Cell[][] cells;
+    private final Timeline timeline = new Timeline();
 
     public LifeBoard(int width, int height) {
         this.width = width;
@@ -34,30 +43,135 @@ public class LifeBoard extends Pane {
         
         cells = new Cell[width][height];
         
-        setPrefSize(width * Cell.SIZE, height * Cell.SIZE);
         setupBoard();
+        createAnimation();
+    }
+    
+    public void play() {
+        timeline.play();
+    }
+    
+    public void stop() {
+        timeline.stop();
+    }
+    
+    public void clear() {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                cells[x][y].setFutureLivingStatus(false);
+            }
+        }
+        
+        commit();
+    }
+    
+    private void process() {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                Cell currentCell = getCell(x, y);
+                List<Cell> neighbors = getNeighbors(currentCell);
+                int aliveCount = ListUtils.count(neighbors, t -> t.isAlive());
+                
+                if(currentCell.isAlive()) {
+                    if(aliveCount <= 1) {
+                        currentCell.setFutureLivingStatus(false);
+                    } else if(aliveCount <= 3) {
+                        currentCell.setFutureLivingStatus(true);
+                    } else {
+                        currentCell.setFutureLivingStatus(false);
+                    }
+                } else {
+                    if(aliveCount == 3) {
+                        currentCell.setFutureLivingStatus(true);
+                    }
+                }
+            }
+        }
+        
+        commit();
+    }
+    
+    private void commit() {
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                cells[x][y].commit();
+            }
+        }
+    }
+    
+    private Cell getCell(int x, int y) {
+        return cells[x][y];
+    }
+    
+    private List<Cell> getNeighbors(Cell cell) {
+        List<Cell> neighbors = new ArrayList<>();
+        
+        int x = (int) cell.x();
+        int y = (int) cell.y();
+        
+        // Left cells
+        if(x > 0) {
+            neighbors.add(getCell(x - 1, y));
+            
+            if(y > 0) {
+                neighbors.add(getCell(x - 1, y - 1));
+            }
+            
+            if(y < height - 1) {
+                neighbors.add(getCell(x - 1, y + 1));
+            }
+        }
+        
+        // Right cells
+        if(x < width - 1) {
+            neighbors.add(getCell(x + 1, y));
+            
+            if(y > 0) {
+                neighbors.add(getCell(x + 1, y - 1));
+            }
+            
+            if(y < height - 1) {
+                neighbors.add(getCell(x + 1, y + 1));
+            }
+        }
+        
+        // Top cell
+        if(y > 0) {
+            neighbors.add(getCell(x, y - 1));
+        }
+        
+        // Bottom cell
+        if(y < height - 1) {
+            neighbors.add(getCell(x, y + 1));
+        }
+        
+        return neighbors;
     }
     
     private void setupBoard() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 cells[x][y] = new Cell();
-                cells[x][y].translate(x, y);
+                cells[x][y].setPosition(x, y);
 
                 cells[x][y].setOnMouseClicked(t -> {
                     Cell clickedCell = (Cell) t.getTarget();
 
-                    clickedCell.toggleAlive();
+                    clickedCell.toggleLivingStatus();
                 });
 
                 getChildren().add(cells[x][y]);
             }
         }
     }
-
-    void run() {
-    }
-
-    void pause() {
+    
+    private void createAnimation() {
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        
+        KeyFrame keyFrame = new KeyFrame(Duration.millis(DEFAULT_ANIMATION_DELAY), t -> {
+            process();
+        });
+        
+        timeline.getKeyFrames().add(keyFrame);
     }
 }

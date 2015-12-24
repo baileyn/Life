@@ -20,6 +20,7 @@ import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -30,32 +31,42 @@ import javafx.stage.Stage;
  * @author Nicholas Bailey
  */
 public class Life extends Application {
-
-    public static final int WIDTH = 25;
-    public static final int HEIGHT = 25;
+    /**
+     * The width of the stage in cells.
+     */
+    public static final int WIDTH = 50;
+    
+    /**
+     * The height of the stage in cells.
+     */
+    public static final int HEIGHT = 50;
 
     @Override
     public void start(Stage primaryStage) {
         VBox root = new VBox();
         
         LifeBoard lifeBoard = new LifeBoard(WIDTH, HEIGHT);
+        lifeBoard.setPrefSize(WIDTH * Cell.SIZE, HEIGHT * Cell.SIZE);
         
         HBox controls = new HBox();
         controls.setAlignment(Pos.CENTER);
         
         Button run = new Button("Run");
-        run.setOnAction(t -> lifeBoard.run());
+        run.setOnAction(t -> lifeBoard.play());
         
         Button pause = new Button("Pause");
-        pause.setOnAction(t -> lifeBoard.pause());
+        pause.setOnAction(t -> lifeBoard.stop());
         
-        controls.getChildren().addAll(run, pause);
+        Button clear = new Button("Clear");
+        clear.setOnAction(t -> lifeBoard.clear());
+        
+        controls.getChildren().addAll(run, pause, clear);
         root.getChildren().addAll(controls, lifeBoard);
         
         
         Scene scene = new Scene(root, WIDTH * Cell.SIZE, HEIGHT * Cell.SIZE);
 
-        primaryStage.setTitle("Hello World!");
+        primaryStage.setTitle("Conway's Game of Life!");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -66,5 +77,4 @@ public class Life extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
 }

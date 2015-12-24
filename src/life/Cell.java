@@ -24,8 +24,10 @@ import javafx.scene.shape.Rectangle;
  * @author Nicholas Bailey
  */
 public class Cell extends Rectangle {
-    public static final int SIZE = 25;
-    private boolean alive = false;
+    public static final int SIZE = 20;
+    
+    private boolean livingStatus = false;
+    private boolean futureLivingStatus = false;
     
     public Cell() {
         super(SIZE, SIZE);
@@ -36,13 +38,36 @@ public class Cell extends Rectangle {
         setFill(Color.WHITE);
     }
 
-    public void translate(int x, int y) {
+    public void setPosition(int x, int y) {
         setTranslateX(x * SIZE);
         setTranslateY(y * SIZE);
     }
     
-    public void toggleAlive() {
-        alive = !alive;
+    public int x() {
+        return (int) getTranslateX() / SIZE;
+    }
+    
+    public int y() {
+        return (int) getTranslateY() / SIZE;
+    }
+    
+    public void toggleLivingStatus() {
+        setLivingStatus(!livingStatus);
+    }
+    
+    public void setFutureLivingStatus(boolean livingStatus) {
+        this.futureLivingStatus = livingStatus;
+    }
+    
+    public void commit() {
+        if(livingStatus != futureLivingStatus) {
+            setLivingStatus(futureLivingStatus);
+        }
+    }
+    
+    private void setLivingStatus(boolean alive) {
+        this.livingStatus = alive;
+        
         
         if(!alive) {
             setFill(Color.WHITE);
@@ -52,6 +77,6 @@ public class Cell extends Rectangle {
     }
     
     public boolean isAlive() {
-        return alive;
+        return livingStatus;
     }
 }
